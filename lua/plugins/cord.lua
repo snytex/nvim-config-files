@@ -1,6 +1,12 @@
 return {
 	"vyfor/cord.nvim",
 	build = ":Cord update",
+	config = function(_, opts)
+		require("cord").setup(opts)
+		vim.api.nvim_create_user_command("ToggleRPC", function()
+			require("cord.api.command").toggle_presence()
+		end, { desc = "Toggle Discord RPC" })
+	end,
 	opts = {
 		usercmds = true,
 		display = {

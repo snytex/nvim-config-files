@@ -5,6 +5,8 @@ return { -- Highlight, edit, and navigate code
 	-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
 	opts = {
 		ensure_installed = {
+			"rust",
+			"asm",
 			"c",
 			"cpp",
 			"lua",
@@ -33,6 +35,7 @@ return { -- Highlight, edit, and navigate code
 			"tsx",
 			"css",
 			"html",
+			"c_sharp",
 		},
 		-- Autoinstall languages that are not installed
 		auto_install = true,

@@ -6,6 +6,7 @@ return {
 		local autopairs = require("nvim-autopairs")
 		autopairs.setup({
 			check_ts = true, -- Enable treesitter
+			map_cr = false, -- CR is handled manually in core/keymaps.lua
 			ts_config = {
 				lua = { "string" }, -- Don't add pairs in lua string treesitter nodes
 				javascript = { "template_string" },

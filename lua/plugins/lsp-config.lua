@@ -2,6 +2,16 @@ return {
 	"rachartier/tiny-inline-diagnostic.nvim",
 	event = "LspAttach",
 	config = function()
+		vim.filetype.add({
+			extension = {
+				vert = "glsl",
+				frag = "glsl",
+				geom = "glsl",
+				tesc = "glsl",
+				tese = "glsl",
+				comp = "glsl",
+			},
+		})
 		require("tiny-inline-diagnostic").setup({
 			preset = "modern", -- Can be: 'modern', 'classic', 'minimal', 'powerline', 'ghost'
 			options = {

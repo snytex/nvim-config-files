@@ -42,6 +42,8 @@ return {
 			sh = { "shfmt" },
 			c = { "clang-format" },
 			cpp = { "clang-format" },
+			java = { "google-java-format" },
+			cs = { "csharpier" },
 		},
 	},
 }

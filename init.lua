@@ -3,6 +3,7 @@ vim.g.maplocalleader = " "
 
 require("core.options")
 require("core.keymaps")
+require("core.cpp_autosemicolon").setup()
 
 -- Plugin Manager
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -16,6 +17,16 @@ end
 
 local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
+
+-- Remove the greyed-out/dimmed font for "unnecessary" code
+vim.api.nvim_set_hl(0, "DiagnosticUnnecessary", {})
+
+-- Remove underlines for warn/hint severity (keeps errors underlined)
+vim.diagnostic.config({
+	underline = {
+		severity = { min = vim.diagnostic.severity.ERROR },
+	},
+})
 
 -- Plugins
 require("lazy").setup({
@@ -35,4 +46,6 @@ require("lazy").setup({
 	require("plugins.lsp-config"),
 	require("plugins.projects"),
 	require("plugins.cord"),
+	require("plugins.render-markdown"),
+	require("plugins.supermaven"),
 })

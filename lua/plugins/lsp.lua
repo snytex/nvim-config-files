@@ -8,6 +8,17 @@ return {
 		{ "folke/neodev.nvim", opts = {} },
 	},
 	config = function()
+		vim.filetype.add({
+			extension = {
+				vert = "glsl",
+				frag = "glsl",
+				geom = "glsl",
+				tesc = "glsl",
+				tese = "glsl",
+				comp = "glsl",
+			},
+		})
+
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
 			callback = function(event)
@@ -26,6 +37,28 @@ return {
 				map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction")
 				map("K", vim.lsp.buf.hover, "Hover Documentation")
 				map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
+
+				vim.keymap.set(
+					"i",
+					"<C-k>",
+					vim.lsp.buf.signature_help,
+					{ buffer = event.buf, desc = "LSP: Signature Help" }
+				)
+
+				vim.api.nvim_create_autocmd("TextChangedI", {
+					buffer = event.buf,
+					callback = function()
+						local client = vim.lsp.get_client_by_id(event.data.client_id)
+						if not client or not client.server_capabilities.signatureHelpProvider then
+							return
+						end
+						local col = vim.api.nvim_win_get_cursor(0)[2]
+						local char_before = vim.api.nvim_get_current_line():sub(col, col)
+						if char_before == "(" or char_before == "," then
+							vim.lsp.buf.signature_help()
+						end
+					end,
+				})
 
 				-- Highlight references under cursor
 				local client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -47,6 +80,22 @@ return {
 
 		-- LSP servers to install and configure
 		local servers = {
+			rust_analyzer = {
+				settings = {
+					["rust-analyzer"] = {
+						cargo = { allFeatures = true },
+						checkOnSave = { command = "clippy" },
+						inlayHints = {
+							bindingModeHints = { enable = true },
+							chainingHints = { enable = true },
+							closureReturnTypeHints = { enable = "always" },
+							parameterHints = { enable = true },
+							typeHints = { enable = true },
+						},
+					},
+				},
+			},
+			jdtls = {},
 			clangd = {
 				cmd = {
 					"clangd",
@@ -54,11 +103,11 @@ return {
 					"--clang-tidy",
 					"--header-insertion=iwyu",
 					"--completion-style=detailed",
-					"--function-arg-placeholders",
+					"--function-arg-placeholders=0",
 					"--fallback-style=llvm",
 				},
 				init_options = {
-					usePlaceholders = true,
+					usePlaceholders = false,
 					completeUnimported = true,
 					clangdFileStatus = true,
 				},
@@ -75,26 +124,87 @@ return {
 					},
 				},
 			},
+			pyright = {
+				settings = {
+					python = {
+						analysis = {
+							typeCheckingMode = "basic",
+							autoSearchPaths = true,
+							useLibraryCodeForTypes = true,
+						},
+					},
+				},
+			},
+			omnisharp = {
+				settings = {
+					FormattingOptions = {
+						EnableEditorConfigSupport = true,
+						OrganizeImports = true,
+					},
+					MsBuild = {
+						LoadProjectsOnDemand = false,
+					},
+					RoslynExtensionsOptions = {
+						EnableAnalyzersSupport = true,
+						EnableImportCompletion = true,
+						InlayHintsOptions = {
+							EnableForParameters = true,
+							ForLiteralParameters = true,
+							ForIndexerParameters = true,
+							ForObjectCreationParameters = true,
+							ForOtherParameters = true,
+							EnableForTypes = true,
+							ForImplicitVariableTypes = true,
+							ForLambdaParameterTypes = true,
+							ForImplicitObjectCreation = true,
+						},
+					},
+				},
+			},
 		}
 
 		require("mason").setup()
 
 		local ensure_installed = vim.tbl_keys(servers or {})
 		vim.list_extend(ensure_installed, {
-			"stylua", -- Lua formatter
-			"clang-format", -- C++ formatter
+			"rust-analyzer",
+			"stylua",
+			"clang-format",
+			"google-java-format",
+			"black",
+			"isort",
+			"csharpier",
+			"netcoredbg",
 		})
 
 		require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
-		require("mason-lspconfig").setup({
-			handlers = {
-				function(server_name)
-					local server = servers[server_name] or {}
-					server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-					require("lspconfig")[server_name].setup(server)
-				end,
-			},
+		-- Neovim 0.11+ / mason-lspconfig v2: the old `handlers` API is gone.
+		-- Register configs via vim.lsp.config and let mason-lspconfig auto-enable them.
+		vim.lsp.config("*", { capabilities = capabilities })
+		for server_name, server in pairs(servers) do
+			vim.lsp.config(server_name, server)
+		end
+
+		require("mason-lspconfig").setup({})
+
+		-- asm_lsp is not in mason, set it up directly
+		vim.lsp.config("asm_lsp", {
+			cmd = { vim.fn.expand("~/.cargo/bin/asm-lsp") },
+			capabilities = capabilities,
+			filetypes = { "asm", "s", "S" },
 		})
+		vim.lsp.enable("asm_lsp")
+
+		-- glsl_analyzer is not in mason, set it up directly
+		vim.lsp.config("glsl_analyzer", {
+			cmd = { "glsl_analyzer" },
+			capabilities = capabilities,
+			filetypes = { "glsl", "vert", "frag", "geom", "tesc", "tese", "comp" },
+			on_attach = function(client, _)
+				client.server_capabilities.signatureHelpProvider = nil
+			end,
+		})
+		vim.lsp.enable("glsl_analyzer")
 	end,
 }
