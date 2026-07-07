@@ -48,4 +48,5 @@ require("lazy").setup({
 	require("plugins.cord"),
 	require("plugins.render-markdown"),
 	require("plugins.supermaven"),
+	require("plugins.outline"),
 })
