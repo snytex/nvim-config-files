@@ -29,6 +29,7 @@ vim.o.splitbelow = true -- force all horizontal splits to go below current windo
 vim.o.splitright = true -- force all vertical splits to go to the right of current window
 vim.o.swapfile = false -- creates a swapfile
 vim.o.smartindent = true -- make indenting smarter again
+vim.opt.cinoptions:append("N-s") -- don't indent the body of a C++ namespace (matches clang-format's NamespaceIndentation: None)
 vim.o.showmode = false -- we don't need to see things like -- INSERT -- anymore
 vim.o.showtabline = 1 -- show if there are at least two tabs
 vim.o.backspace = "indent,eol,start" -- allow backspace on

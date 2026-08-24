@@ -28,6 +28,40 @@ return { -- Autocompletion
 		local luasnip = require("luasnip")
 		luasnip.config.setup({})
 
+		-- After a deletion, re-request completions from the LSP so the real
+		-- symbols come back instead of the stale fuzzy list cmp was filtering.
+		-- Debounced: holding <BS> keeps resetting the timer, so we only refetch
+		-- once you pause (no per-keystroke lag), and only inside a word.
+		local uv = vim.uv or vim.loop
+		local retrigger_timer = nil
+		local function retrigger_after_delete()
+			if retrigger_timer then
+				retrigger_timer:stop()
+				retrigger_timer:close()
+				retrigger_timer = nil
+			end
+			retrigger_timer = uv.new_timer()
+			retrigger_timer:start(
+				120,
+				0,
+				vim.schedule_wrap(function()
+					if retrigger_timer then
+						retrigger_timer:stop()
+						retrigger_timer:close()
+						retrigger_timer = nil
+					end
+					if not vim.api.nvim_get_mode().mode:match("^i") then
+						return
+					end
+					local col = vim.fn.col(".") - 1
+					local before = vim.fn.getline("."):sub(1, col)
+					if before:match("[%w_]$") then
+						cmp.complete()
+					end
+				end)
+			)
+		end
+
 		local kind_icons = {
 			Text = "󰉿",
 			Method = "m",
@@ -119,6 +153,17 @@ return { -- Autocompletion
 						fallback()
 					end
 				end, { "i", "s" }),
+
+				-- Deleting text re-queries the LSP instead of fuzzy-filtering
+				-- the stale candidate list (fixes GL_ARRRD_V → GL_ARR chokepoint).
+				["<BS>"] = cmp.mapping(function(fallback)
+					fallback()
+					retrigger_after_delete()
+				end, { "i" }),
+				["<C-w>"] = cmp.mapping(function(fallback)
+					fallback()
+					retrigger_after_delete()
+				end, { "i" }),
 			}),
 			sources = {
 				{ name = "lazydev", group_index = 0 },
