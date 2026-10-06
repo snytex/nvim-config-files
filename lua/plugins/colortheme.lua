@@ -8,6 +8,7 @@ return {
 			italic_comments = true,
 		})
 		vim.cmd.colorscheme("vscode")
+		require("core.obsidian_syntax").setup()
 
 		vim.api.nvim_set_hl(0, "BufferLineFill", { bg = "NONE" })
 		vim.api.nvim_set_hl(0, "BufferLineBackground", { bg = "NONE", fg = "#555555" })

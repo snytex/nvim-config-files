@@ -85,7 +85,11 @@ return {
 				settings = {
 					["rust-analyzer"] = {
 						cargo = { allFeatures = true },
-						checkOnSave = { command = "clippy" },
+						-- Old schema was `checkOnSave = { command = "clippy" }`, which
+						-- current rust-analyzer rejects: "/checkOnSave: invalid type:
+						-- map, expected a boolean". The command moved under `check`.
+						checkOnSave = true,
+						check = { command = "clippy" },
 						inlayHints = {
 							bindingModeHints = { enable = true },
 							chainingHints = { enable = true },
@@ -182,7 +186,6 @@ return {
 			"google-java-format",
 			"black",
 			"isort",
-			"csharpier",
 			"netcoredbg",
 		})
 

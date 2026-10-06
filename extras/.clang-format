@@ -1,0 +1,23 @@
+BasedOnStyle: LLVM
+
+# Opening brace on its own line -- everywhere.
+# Functions, classes, structs, enums, unions, namespaces, extern blocks,
+# if/else, for, while, do, switch, try/catch.
+BreakBeforeBraces: Allman
+
+# Short function bodies (one statement that fits) stay on one line;
+# anything longer gets the Allman layout above.
+AllowShortFunctionsOnASingleLine: All
+AllowShortEnumsOnASingleLine: false
+AllowShortLambdasOnASingleLine: None
+
+# void* p / AppConfig& c  -- bind to the type, not the name
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Hands off my includes: no sorting, no regrouping, no merging blocks
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+# Indent bodies of namespaces (LLVM leaves them flush left)
+NamespaceIndentation: All

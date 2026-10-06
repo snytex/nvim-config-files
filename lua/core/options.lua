@@ -29,7 +29,6 @@ vim.o.splitbelow = true -- force all horizontal splits to go below current windo
 vim.o.splitright = true -- force all vertical splits to go to the right of current window
 vim.o.swapfile = false -- creates a swapfile
 vim.o.smartindent = true -- make indenting smarter again
-vim.opt.cinoptions:append("N-s") -- don't indent the body of a C++ namespace (matches clang-format's NamespaceIndentation: None)
 vim.o.showmode = false -- we don't need to see things like -- INSERT -- anymore
 vim.o.showtabline = 1 -- show if there are at least two tabs
 vim.o.backspace = "indent,eol,start" -- allow backspace on
@@ -43,3 +42,24 @@ vim.opt.iskeyword:append("-") -- hyphenated words recognized by searches
 vim.opt.formatoptions:remove({ "c", "r", "o" }) -- don't insert the current comment leader automatically for auto-wrapping comments using 'textwidth', hitting <Enter> in insert mode, or hitting 'o' or 'O' in normal mode.
 vim.opt.runtimepath:remove("/usr/share/vim/vimfiles") -- separate vim plugins from neovim in case vim still in use
 vim.opt.fillchars = { eob = " " }
+
+-- The globals above are only defaults: filetype plugins run afterwards and set
+-- their own buffer-local widths (python forces 4, cs/sh 4, go/make hard tabs),
+-- which is why only C/C++ came out at 2. This re-asserts 2 spaces after them.
+local indent_group = vim.api.nvim_create_augroup("force-two-space-indent", { clear = true })
+
+-- Filetypes where hard tabs are mandatory, not a style choice: make recipes
+-- must start with a literal tab, and gofmt rewrites Go back to tabs on save.
+-- These keep real tabs, just rendered two columns wide.
+local hard_tab_filetypes = { go = true, gomod = true, gowork = true, make = true }
+
+vim.api.nvim_create_autocmd("FileType", {
+  group = indent_group,
+  callback = function(ev)
+    local bo = vim.bo[ev.buf]
+    bo.tabstop = 2
+    bo.shiftwidth = 2
+    bo.softtabstop = 2
+    bo.expandtab = not hard_tab_filetypes[ev.match]
+  end,
+})
