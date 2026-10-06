@@ -49,4 +49,8 @@ require("lazy").setup({
 	require("plugins.render-markdown"),
 	require("plugins.supermaven"),
 	require("plugins.outline"),
+	require("plugins.dap"),
+	require("plugins.smearcursor"),
+	require("plugins.bufdelete"),
+	require("plugins.clangd-extensions"),
 })

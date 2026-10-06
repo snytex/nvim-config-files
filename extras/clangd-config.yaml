@@ -1,0 +1,8 @@
+# The default standard (C++23) is set in Neovim's clangd init_options as
+# fallbackFlags, which clangd only uses for files with no compile_commands.json
+# entry, so a project's own -std= always wins and loose .h files parse as C++.
+# Fallback flags are language-agnostic, so strip the C++ standard from C files.
+If:
+  PathMatch: [.*\.c]
+CompileFlags:
+  Remove: [-std=c++23]

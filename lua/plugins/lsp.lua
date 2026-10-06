@@ -6,26 +6,24 @@ return {
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 		"b0o/schemastore.nvim",
 		{ "j-hui/fidget.nvim", opts = {} },
-		{ "folke/neodev.nvim", opts = {} },
+		{
+			"folke/lazydev.nvim", -- successor to neodev: nvim API types for lua_ls
+			ft = "lua",
+			opts = {
+				library = { { path = "${3rd}/luv/library", words = { "vim%.uv" } } },
+			},
+		},
 	},
 	config = function()
-		vim.filetype.add({
-			extension = {
-				vert = "glsl",
-				frag = "glsl",
-				geom = "glsl",
-				tesc = "glsl",
-				tese = "glsl",
-				comp = "glsl",
-			},
-		})
-
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
 			callback = function(event)
+				-- nowait: Neovim's built-in grn/grr/gra/gri/grt would otherwise make
+				-- `gr` sit for 'timeoutlen' waiting to see if you meant one of those.
 				local map = function(keys, func, desc)
-					vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
+					vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc, nowait = true })
 				end
+				local client = vim.lsp.get_client_by_id(event.data.client_id)
 
 				-- Jump to definition/references/etc
 				map("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
@@ -46,11 +44,13 @@ return {
 					{ buffer = event.buf, desc = "LSP: Signature Help" }
 				)
 
+				-- One handler per buffer, however many clients attach to it.
+				local sig_group = vim.api.nvim_create_augroup("lsp-signature-" .. event.buf, { clear = true })
 				vim.api.nvim_create_autocmd("TextChangedI", {
+					group = sig_group,
 					buffer = event.buf,
 					callback = function()
-						local client = vim.lsp.get_client_by_id(event.data.client_id)
-						if not client or not client.server_capabilities.signatureHelpProvider then
+						if #vim.lsp.get_clients({ bufnr = event.buf, method = "textDocument/signatureHelp" }) == 0 then
 							return
 						end
 						local col = vim.api.nvim_win_get_cursor(0)[2]
@@ -61,8 +61,19 @@ return {
 					end,
 				})
 
+				-- Inlay hints (deduced `auto` types, parameter names), on by default
+				if client and client:supports_method("textDocument/inlayHint") then
+					vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
+					map("<leader>ih", function()
+						vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }), { bufnr = event.buf })
+					end, "Toggle [I]nlay [H]ints")
+				end
+
+				if client and client.name == "clangd" then
+					map("<leader>ch", "<cmd>LspClangdSwitchSourceHeader<CR>", "Switch [C] source/[H]eader")
+				end
+
 				-- Highlight references under cursor
-				local client = vim.lsp.get_client_by_id(event.data.client_id)
 				if client and client.server_capabilities.documentHighlightProvider then
 					vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 						buffer = event.buf,
@@ -118,8 +129,15 @@ return {
 					"--completion-style=detailed",
 					"--function-arg-placeholders=0",
 					"--fallback-style=llvm",
+					-- Let clangd ask the project's real compiler for its system
+					-- include paths (cross compilers, gcc, Nix-store toolchains).
+					"--query-driver=/usr/bin/*,/usr/local/bin/*,/nix/store/*/bin/*",
 				},
 				init_options = {
+					-- Only used for files with no compile_commands.json entry, so
+					-- a project's own -std= always wins. C files strip this again
+					-- in ~/.config/clangd/config.yaml.
+					fallbackFlags = { "-std=c++23" },
 					usePlaceholders = false,
 					completeUnimported = true,
 					clangdFileStatus = true,
@@ -184,8 +202,6 @@ return {
 			"stylua",
 			"clang-format",
 			"google-java-format",
-			"black",
-			"isort",
 			"netcoredbg",
 		})
 

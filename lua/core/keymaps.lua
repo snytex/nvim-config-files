@@ -58,7 +58,7 @@ vim.keymap.set("n", "<leader>-", "<C-x>", opts) -- decrement
 vim.keymap.set("n", "<leader>v", "<C-w>v", opts) -- split window vertically
 vim.keymap.set("n", "<leader>h", "<C-w>s", opts) -- split window horizontally
 vim.keymap.set("n", "<leader>se", "<C-w>=", opts) -- make split windows equal width & height
-vim.keymap.set("n", "<leader>xs", ":close<CR>", opts) -- close current split window
+vim.keymap.set("n", "<leader>X", ":close<CR>", opts) -- close current split window (not <leader>xs: that made <leader>x wait)
 
 -- Navigate between splits
 vim.keymap.set("n", "<C-k>", ":wincmd k<CR>", opts)
@@ -66,11 +66,11 @@ vim.keymap.set("n", "<C-j>", ":wincmd j<CR>", opts)
 vim.keymap.set("n", "<C-h>", ":wincmd h<CR>", opts)
 vim.keymap.set("n", "<C-l>", ":wincmd l<CR>", opts)
 
--- Tabs
-vim.keymap.set("n", "<leader>to", ":tabnew<CR>", opts) -- open new tab
-vim.keymap.set("n", "<leader>tx", ":tabclose<CR>", opts) -- close current tab
-vim.keymap.set("n", "<leader>tn", ":tabn<CR>", opts) --  go to next tab
-vim.keymap.set("n", "<leader>tp", ":tabp<CR>", opts) --  go to previous tab
+-- Tabs (capital T so <leader>t opens Telescope instantly instead of waiting)
+vim.keymap.set("n", "<leader>To", ":tabnew<CR>", opts) -- open new tab
+vim.keymap.set("n", "<leader>Tx", ":tabclose<CR>", opts) -- close current tab
+vim.keymap.set("n", "<leader>Tn", ":tabn<CR>", opts) --  go to next tab
+vim.keymap.set("n", "<leader>Tp", ":tabp<CR>", opts) --  go to previous tab
 
 -- Toggle line wrapping
 vim.keymap.set("n", "<leader>lw", "<cmd>set wrap!<CR>", opts)
@@ -116,7 +116,7 @@ vim.keymap.set("n", "]d", function()
 	vim.diagnostic.jump({ count = 1, float = true })
 end, { desc = "Go to next diagnostic message" })
 
-vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
+vim.keymap.set("n", "<leader>dd", vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
 
 -- Save and load session

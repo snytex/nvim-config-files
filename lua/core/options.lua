@@ -43,6 +43,18 @@ vim.opt.formatoptions:remove({ "c", "r", "o" }) -- don't insert the current comm
 vim.opt.runtimepath:remove("/usr/share/vim/vimfiles") -- separate vim plugins from neovim in case vim still in use
 vim.opt.fillchars = { eob = " " }
 
+-- Shader stages are all GLSL (glsl_analyzer + the glsl treesitter parser)
+vim.filetype.add({
+  extension = {
+    vert = "glsl",
+    frag = "glsl",
+    geom = "glsl",
+    tesc = "glsl",
+    tese = "glsl",
+    comp = "glsl",
+  },
+})
+
 -- The globals above are only defaults: filetype plugins run afterwards and set
 -- their own buffer-local widths (python forces 4, cs/sh 4, go/make hard tabs),
 -- which is why only C/C++ came out at 2. This re-asserts 2 spaces after them.
