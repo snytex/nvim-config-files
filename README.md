@@ -22,4 +22,3 @@ nvim
 
 - `.clang-format` – global C/C++ format style (copy to `~/.clang-format`)
 - `clangd-config.yaml` – global clangd config (copy to `~/.config/clangd/config.yaml`)
-- `make_thumbnail.py` – regenerates the image above from `screenshot.png`
